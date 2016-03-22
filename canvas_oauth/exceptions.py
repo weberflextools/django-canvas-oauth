@@ -1,11 +1,9 @@
-class CanvasOauthError(Exception): pass
+class CanvasOAuthError(Exception): pass
 
-class MissingTokenError(CanvasOauthError): pass
+class MissingTokenError(CanvasOAuthError): pass
 
-class InvalidTokenError(CanvasOauthError): pass
+class InvalidTokenError(CanvasOAuthError): pass
 
-class BadLTIConfigError(CanvasOauthError): pass
+class InvalidOAuthStateError(CanvasOAuthError): pass
 
-class InvalidOAuthStateError(CanvasOauthError): pass
-
-class InvalidOAuthReturnError(CanvasOauthError): pass
+class InvalidOAuthReturnError(CanvasOAuthError): pass

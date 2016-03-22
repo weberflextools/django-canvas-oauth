@@ -1,6 +1,7 @@
-from canvas_oauth.exceptions import (MissingTokenError,
-    InvalidTokenError)
-from canvas_oauth.oauth import begin_oauth, process_refresh_token
+from canvas_oauth.exceptions import (
+    MissingTokenError, InvalidTokenError, CanvasOAuthError)
+from canvas_oauth.oauth import (
+    handle_missing_token, handle_invalid_token, render_oauth_error)
 
 
 class OAuthMiddleware(object):
@@ -11,10 +12,13 @@ class OAuthMiddleware(object):
     and reprocess the request.  An InvalidTokenError is expected to be raised
     by the consuming library if an API request returns a 401 with a
     WWW-Authenticate header (to distinguish from API requests where the user is
-    simply unauthorized to perform the action)."""
+    simply unauthorized to perform the action).  For other CanvasOAuthErrors,
+    we render an error page with the exception text."""
     def process_exception(self, request, exception):
         if isinstance(exception, MissingTokenError):
-            return begin_oauth(request)
+            return handle_missing_token(request)
         elif isinstance(exception, InvalidTokenError):
-            return process_refresh_token(request)
+            return handle_invalid_token(request)
+        elif isinstance(exception, CanvasOAuthError):
+            return render_oauth_error(str(exception))
         return
