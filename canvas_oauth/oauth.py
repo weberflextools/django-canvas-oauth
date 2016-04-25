@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -8,39 +7,45 @@ from django.template import loader
 from django.template.exceptions import TemplateDoesNotExist
 from django.utils.crypto import get_random_string
 
-from canvas_oauth import canvas
-from canvas_oauth.models import CanvasOAuthToken
+from canvas_oauth import (canvas, settings)
+from canvas_oauth.models import CanvasOAuth2Token
 from canvas_oauth.exceptions import (
     MissingTokenError, InvalidOAuthStateError)
 
 logger = logging.getLogger(__name__)
 
-OAUTH_ERROR_TEMPLATE = "oauth_error.html"
-if hasattr(settings, "CANVAS_OAUTH_ERROR_TEMPLATE"):
-    OAUTH_ERROR_TEMPLATE = settings.CANVAS_OAUTH_ERROR_TEMPLATE
-
 
 def get_oauth_token(request):
-    """Retrieve an OAuth token for the user if one exists already.
+    """Retrieve a stored Canvas OAuth2 access token from Canvas for the
+    currently logged in user.  If the token has expired (or has exceeded an
+    expiration threshold as defined by the consuming project), a fresh token
+    is generated via the saved refresh token.
 
-    If there isn't one, it raises a MissingTokenError exception.  If this
-    happens inside a view, this exception will be handled by the
-    django_canvas_oauth middleware to call handle_missing_token.  If this
-    happens outside of a view, then there is no token available for
-    that user and they must be directed to the site to authorize a token.
+    If the user does not have a stored token, the method raises a
+    MissingTokenError exception.  If this happens inside a view, this exception
+    will be handled by the middleware component of this library with a call to
+    handle_missing_token.  If this happens outside of a view, then the user must
+    be directed by other means to the Canvas site in order to authorize a token.
     """
     try:
-        return request.user.canvas_oauth_token.access_token
-    except CanvasOAuthToken.DoesNotExist:
+        oauth_token = request.user.canvas_oauth2_token
+    except CanvasOAuth2Token.DoesNotExist:
         """ If this exception is raised by a view function and not caught,
         it is probably because the oauth_middleware is not installed, since it
         is supposed to catch this error."""
         raise MissingTokenError("No token found for user %s" % request.user.pk)
 
+    # Check to see if we're within the expiration threshold of the access token
+    if oauth_token.expires_within(
+            settings.CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER):
+        oauth_token = refresh_oauth_token(request)
+
+    return oauth_token.access_token
+
 
 def handle_missing_token(request):
-    """Redirect user to canvas with a request for token.
-
+    """
+    Redirect user to canvas with a request for token.
     """
     # Store where the user came from so they can be redirected back there
     # at the end.  https://canvas.instructure.com/doc/api/file.oauth.html
@@ -78,34 +83,42 @@ def oauth_callback(request):
     if state != request.session['canvas_oauth_request_state']:
         raise InvalidOAuthStateError("OAuth state mismatch!")
 
-    access_token, refresh_token, _ = canvas.get_access_token(
+    # Make the `authorization_code` grant type request to retrieve a
+    access_token, expires, refresh_token = canvas.get_access_token(
         grant_type='authorization_code',
         client_id=settings.CANVAS_OAUTH_CLIENT_ID,
         client_secret=settings.CANVAS_OAUTH_CLIENT_SECRET,
         redirect_uri=request.session["canvas_oauth_redirect_uri"],
         code=code)
 
-    CanvasOAuthToken.objects.create(user=request.user,
-                                    access_token=access_token,
-                                    refresh_token=refresh_token)
+    CanvasOAuth2Token.objects.create(
+        user=request.user, access_token=access_token,
+        expires=expires, refresh_token=refresh_token)
+
     return redirect(request.session['canvas_oauth_initial_uri'])
 
 
-def handle_invalid_token(request):
-    oauth_token_model = request.user.canvas_oauth_token
+def refresh_oauth_token(request):
+    """ Makes refresh_token grant request with Canvas to get a fresh
+    access token.  Update the oauth token model with the new token
+    and new expiration date and return the saved model.
+    """
+    oauth_token = request.user.canvas_oauth2_token
 
-    # Assign the new access token to the user model
-    oauth_token_model.access_token, _, _ = canvas.get_access_token(
+    # Get the new access token and expiration date via
+    # a refresh token grant
+    oauth_token.access_token, oauth_token.expires, _ = canvas.get_access_token(
         grant_type='refresh_token',
         client_id=settings.CANVAS_OAUTH_CLIENT_ID,
         client_secret=settings.CANVAS_OAUTH_CLIENT_SECRET,
-        redirect_uri=request.session["canvas_oauth_redirect_uri"],
-        refresh_token=oauth_token_model.refresh_token)
+        redirect_uri=request.build_absolute_uri(
+            reverse('canvas-oauth-callback')),
+        refresh_token=oauth_token.refresh_token)
 
-    oauth_token_model.save()  # Update the token
+    # Update the model with new token and expiration
+    oauth_token.save()
 
-    # Send user back to the prior request
-    return redirect(request.get_full_path())
+    return oauth_token
 
 
 def render_oauth_error(error_message):
@@ -113,7 +126,7 @@ def render_oauth_error(error_message):
         template that can be styled; otherwise, if OAUTH_ERROR_TEMPLATE not
         found, this will return a HttpResponse with status 403 """
     try:
-        template = loader.render_to_string(OAUTH_ERROR_TEMPLATE,
+        template = loader.render_to_string(settings.CANVAS_OAUTH_ERROR_TEMPLATE,
                                            {"message": error_message})
     except TemplateDoesNotExist:
         return HttpResponse("Error: %s" % error_message, status=403)

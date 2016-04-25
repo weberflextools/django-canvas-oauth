@@ -16,10 +16,10 @@ setup(
     packages=['canvas_oauth'],
     include_package_data=True,
     license="License :: OSI Approved :: MIT License",
-    description='A simple Django app containing OAuth libraries.',
+    description='A reusable Django app used to handle OAuth2 flow with Canvas.',
     long_description=README,
     url='https://www.example.com/',
-    author='Your Name',
+    author='Jaime Bermudez',
     author_email='tlt-ops@g.harvard.edu',
     classifiers=[
         'Environment :: Web Environment',

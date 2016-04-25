@@ -1,9 +1,11 @@
 import logging
+from datetime import timedelta
 
 import requests
-from django.conf import settings
+from django.utils import timezone
 
 from canvas_oauth.exceptions import InvalidOAuthReturnError
+from canvas_oauth import settings
 
 logger = logging.getLogger(__name__)
 
@@ -14,12 +16,9 @@ ACCESS_TOKEN_URL_PATTERN = "https://%s/login/oauth2/token"
 def get_oauth_login_url(client_id, redirect_uri, response_type='code',
                         state=None, scopes=None, purpose=None,
                         force_login=None):
-    """Build an OAuth request url for Canvas.
-
-    With the parameters as defined here ().
-
+    """Builds an OAuth request url for Canvas.
     """
-    authorize_url = AUTHORIZE_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_FQDN
+    authorize_url = AUTHORIZE_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_DOMAIN
 
     auth_request_params = {
         'client_id': client_id,
@@ -40,8 +39,16 @@ def get_oauth_login_url(client_id, redirect_uri, response_type='code',
 
 def get_access_token(grant_type, client_id, client_secret, redirect_uri,
                      code=None, refresh_token=None):
+    """Performs one of the two grant types supported by Canvas' OAuth endpoint to
+    to retrieve an access token.  Expect a `code` kwarg when performing an
+    `authorization_code` grant; otherwise, assume we're doing a `refresh_token`
+    grant.
+
+    Return a tuple of the access token, expiration date as a timezone aware DateTime,
+    and refresh token (returned by `authorization_code` requests only).
+    """
     # Call Canvas endpoint to
-    oauth_token_url = ACCESS_TOKEN_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_FQDN
+    oauth_token_url = ACCESS_TOKEN_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_DOMAIN
     post_params = {
         'grant_type': grant_type,  # Use 'authorization_code' for new tokens
         'client_id': client_id,
@@ -65,12 +72,14 @@ def get_access_token(grant_type, client_id, client_secret, redirect_uri,
     # the refresh token
     response_data = r.json()
     access_token = response_data['access_token']
-    expires_in = response_data['expires_in']
+    seconds_to_expire = response_data['expires_in']
+    # Convert the expiration time in seconds to a DateTime
+    expires = timezone.now() + timedelta(seconds=seconds_to_expire)
     # Whether a refresh token is included in the response depends on the
     # grant_type - it only appears to be returned for 'authorization_code',
     # but to be safe check the response_data for it
-    refresh_token = ''
+    refresh_token = None
     if 'refresh_token' in response_data:
         refresh_token = response_data['refresh_token']
 
-    return (access_token, refresh_token, expires_in)
+    return (access_token, expires, refresh_token)
