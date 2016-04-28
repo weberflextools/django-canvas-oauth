@@ -1,5 +1,5 @@
 from canvas_oauth.exceptions import (
-    MissingTokenError, InvalidTokenError, CanvasOAuthError)
+    MissingTokenError, CanvasOAuthError)
 from canvas_oauth.oauth import (
     handle_missing_token, render_oauth_error)
 
