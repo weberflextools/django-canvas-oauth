@@ -1,4 +1,3 @@
 include LICENSE
 include README.rst
-recursive-include canvas_oauth/static *
 recursive-include canvas_oauth/templates *

@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import (find_packages, setup)
 
 with open(os.path.join(os.path.dirname(__file__), 'VERSION')) as v_file:
     version = v_file.read().strip()
@@ -13,7 +13,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
     name='canvas-oauth',
     version=version,
-    packages=['canvas_oauth'],
+    packages=find_packages(),
     include_package_data=True,
     license="License :: OSI Approved :: MIT License",
     description='A reusable Django app used to handle OAuth2 flow with Canvas.',
