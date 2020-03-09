@@ -2,7 +2,7 @@
 """
 canvas_oauth specific settings
 """
-from __future__ import unicode_literals
+
 from datetime import timedelta
 
 from django.core.exceptions import ImproperlyConfigured

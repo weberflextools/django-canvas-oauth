@@ -5,6 +5,13 @@ from canvas_oauth.oauth import (
 
 
 class OAuthMiddleware(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
     """On catching a MissingTokenError - as is raised by the get_token function
     if there is no saved token for the user - this begins the oauth dance with
     canvas to get a new token.  For other CanvasOAuthErrors, an error page with

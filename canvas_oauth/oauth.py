@@ -1,6 +1,6 @@
 import logging
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import loader
@@ -29,15 +29,17 @@ def get_oauth_token(request):
     """
     try:
         oauth_token = request.user.canvas_oauth2_token
+        logger.info("Token found for user %s" % request.user.pk)
     except CanvasOAuth2Token.DoesNotExist:
         """ If this exception is raised by a view function and not caught,
         it is probably because the oauth_middleware is not installed, since it
         is supposed to catch this error."""
+        logger.info("No token found for user %s" % request.user.pk)
         raise MissingTokenError("No token found for user %s" % request.user.pk)
 
     # Check to see if we're within the expiration threshold of the access token
-    if oauth_token.expires_within(
-            settings.CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER):
+    if oauth_token.expires_within(settings.CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER):
+        logger.info("Refreshing token for user %s" % request.user.pk)
         oauth_token = refresh_oauth_token(request)
 
     return oauth_token.access_token
@@ -59,14 +61,15 @@ def handle_missing_token(request):
     # The return URI is required to be the same when POSTing to generate
     # a token on callback, so also store it in session (although it could
     # be regenerated again via the same method call).
-    oauth_redirect_uri = request.build_absolute_uri(
-        reverse('canvas-oauth-callback'))
+    oauth_redirect_uri = request.build_absolute_uri(reverse('canvas-oauth-callback'))
     request.session["canvas_oauth_redirect_uri"] = oauth_redirect_uri
 
     authorize_url = canvas.get_oauth_login_url(
         settings.CANVAS_OAUTH_CLIENT_ID,
         redirect_uri=oauth_redirect_uri,
         state=oauth_request_state)
+    
+    logger.info("Redirecting user to %s" % authorize_url)
     return HttpResponseRedirect(authorize_url)
 
 
@@ -81,6 +84,7 @@ def oauth_callback(request):
     state = request.GET.get('state')
 
     if state != request.session['canvas_oauth_request_state']:
+        logger.warning("OAuth state mismatch for request: %s" % request.get_full_path())
         raise InvalidOAuthStateError("OAuth state mismatch!")
 
     # Make the `authorization_code` grant type request to retrieve a
@@ -91,11 +95,17 @@ def oauth_callback(request):
         redirect_uri=request.session["canvas_oauth_redirect_uri"],
         code=code)
 
-    CanvasOAuth2Token.objects.create(
-        user=request.user, access_token=access_token,
-        expires=expires, refresh_token=refresh_token)
+    obj = CanvasOAuth2Token.objects.create(
+        user=request.user, 
+        access_token=access_token,
+        expires=expires, 
+        refresh_token=refresh_token)
+    logger.info("CanvasOAuth2Token instance created: %s" % obj.pk)
 
-    return redirect(request.session['canvas_oauth_initial_uri'])
+    initial_uri = request.session['canvas_oauth_initial_uri']
+    logger.info("Redirecting user back to initial uri %s" % initial_uri)
+
+    return redirect(initial_uri)
 
 
 def refresh_oauth_token(request):
@@ -125,6 +135,7 @@ def render_oauth_error(error_message):
     """ If there is an error in the oauth callback, attempts to render it in a
         template that can be styled; otherwise, if OAUTH_ERROR_TEMPLATE not
         found, this will return a HttpResponse with status 403 """
+    logger.error("OAuth error %s" % error_message)
     try:
         template = loader.render_to_string(settings.CANVAS_OAUTH_ERROR_TEMPLATE,
                                            {"message": error_message})
