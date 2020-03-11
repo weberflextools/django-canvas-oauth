@@ -19,6 +19,7 @@ def get_required_setting(oauth_setting):
             'Missing %s setting that is required to use the Django Canvas OAuth library' % oauth_setting)
     return getattr(settings, oauth_setting)
 
+
 # Get required settings from project conf
 CANVAS_OAUTH_CLIENT_ID = get_required_setting('CANVAS_OAUTH_CLIENT_ID')
 CANVAS_OAUTH_CLIENT_SECRET = get_required_setting('CANVAS_OAUTH_CLIENT_SECRET')

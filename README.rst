@@ -124,17 +124,18 @@ Setup environment:
     $ source ~/.virtualenvs/django-canvas-oauth/bin/activate
     $ pip install -r requirements-dev.txt
 
-To run tests:
+To run tests in your venv:
 
 .. code-block:: bash
 
     $ python run_tests.py
 
-And to run tests against various versions of python and django use tox_:
+Or to run tests against multiple versions of python and django use tox_:
 
 .. code-block:: bash
 
     $ tox
+    $ tox -e flake8 
 
 .. _tox: https://tox.readthedocs.io/
 

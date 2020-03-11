@@ -1,13 +1,15 @@
 from django.test import TestCase
-from django.test.client import RequestFactory  
+from django.test.client import RequestFactory
 from django.http import HttpResponse
 from unittest.mock import patch
 
 from canvas_oauth.middleware import OAuthMiddleware
 from canvas_oauth.exceptions import MissingTokenError, CanvasOAuthError
 
+
 def dummy_response(request):
     return HttpResponse("Dummy")
+
 
 class TestOAuthMiddleware(TestCase):
 

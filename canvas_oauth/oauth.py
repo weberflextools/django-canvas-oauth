@@ -68,7 +68,7 @@ def handle_missing_token(request):
         settings.CANVAS_OAUTH_CLIENT_ID,
         redirect_uri=oauth_redirect_uri,
         state=oauth_request_state)
-    
+
     logger.info("Redirecting user to %s" % authorize_url)
     return HttpResponseRedirect(authorize_url)
 
@@ -96,9 +96,9 @@ def oauth_callback(request):
         code=code)
 
     obj = CanvasOAuth2Token.objects.create(
-        user=request.user, 
+        user=request.user,
         access_token=access_token,
-        expires=expires, 
+        expires=expires,
         refresh_token=refresh_token)
     logger.info("CanvasOAuth2Token instance created: %s" % obj.pk)
 

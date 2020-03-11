@@ -4,21 +4,22 @@ from django.core.exceptions import ImproperlyConfigured
 from contextlib import contextmanager
 import importlib
 import datetime
-import os
 
 
 CANVAS_OAUTH_SETTINGS_MODULE_NAME = "canvas_oauth.settings"
 
+
 @contextmanager
 def required_oauth_settings(oauth_settings={}):
     settings.CANVAS_OAUTH_CLIENT_ID = oauth_settings.get('CANVAS_OAUTH_CLIENT_ID', '10000000000012')
-    settings.CANVAS_OAUTH_CLIENT_SECRET = oauth_settings.get('CANVAS_OAUTH_CLIENT_SECRET', 'yKZc1bJpdykVBUT4Jc42E9LFUbCOztovU5uDcjzf60A2NrpaPHUkAdTz3FgMgnJB')
+    settings.CANVAS_OAUTH_CLIENT_SECRET = oauth_settings.get('CANVAS_OAUTH_CLIENT_SECRET', 'yKZc1bJpdykVBUT4')
     settings.CANVAS_OAUTH_CANVAS_DOMAIN = oauth_settings.get('CANVAS_OAUTH_CANVAS_DOMAIN', 'canvas.localhost')
     yield
     delattr(settings, 'CANVAS_OAUTH_CLIENT_ID')
     delattr(settings, 'CANVAS_OAUTH_CLIENT_SECRET')
     delattr(settings, 'CANVAS_OAUTH_CANVAS_DOMAIN')
-    
+
+
 class TestCanvasOauthSettings(TestCase):
 
     def test_required_settings_raises_exception(self):
@@ -49,5 +50,3 @@ class TestCanvasOauthSettings(TestCase):
             canvas_oauth_settings = importlib.reload(canvas_oauth_settings)
             self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_ERROR_TEMPLATE'))
             self.assertEqual('oauth_error.html', canvas_oauth_settings.CANVAS_OAUTH_ERROR_TEMPLATE)
-
-

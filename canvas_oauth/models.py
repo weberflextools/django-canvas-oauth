@@ -45,10 +45,10 @@ class CanvasOAuth2Token(models.Model):
             return False
 
         return self.expires - timezone.now() <= delta
-    
+
     def __str__(self):
         return "CanvasOAuth2Token:%s" % self.user
-    
+
     class Meta:
         verbose_name = "Canvas OAuth2 Token"
         verbose_name_plural = "Canvas OAuth2 Tokens"

@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from datetime import datetime, timedelta
-from unittest.mock import Mock, MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from canvas_oauth import settings
 from canvas_oauth.models import CanvasOAuth2Token
@@ -14,12 +14,12 @@ from canvas_oauth.canvas import get_oauth_login_url
 from canvas_oauth.oauth import (
     get_oauth_token,
     handle_missing_token,
-     oauth_callback,
-    refresh_oauth_token, 
-    render_oauth_error)
+    oauth_callback,
+    refresh_oauth_token)
 
 
-logging.disable(logging.CRITICAL) # disable logging for anything less than critical
+logging.disable(logging.CRITICAL)  # disable logging for anything less than critical
+
 
 class StubCanvasOAuth2Token(object):
     # TODO: figure out better way to stub this
@@ -35,20 +35,19 @@ class StubCanvasOAuth2Token(object):
 
     def save(self):
         self._called_save_method = True
-    
+
     def expires_within(self, delta):
         self._expires_within_delta = delta
         return self._expires_within_return_value
 
     def stub_save_called(self):
         return bool(self._called_save_method)
-    
+
     def stub_expires_within_return_value(self, return_value):
         self._expires_within_return_value = return_value
 
     def stub_expires_within_called_with(self, delta):
         return self._expires_within_delta == delta
-
 
 
 class TestRefreshOauthToken(TestCase):
@@ -125,7 +124,7 @@ class TestOauthCallback(TestCase):
         # setup request
         rf = RequestFactory()
         query_params = {
-            "code": "red-green-blue", 
+            "code": "red-green-blue",
             "state": "RandomState100"
         }
         request = rf.get('/index', data=query_params)
@@ -168,7 +167,7 @@ class TestHandleMissingToken(TestCase):
         # setup request
         rf = RequestFactory()
         query_params = {
-            "q": "education", 
+            "q": "education",
             "page": "5"
         }
         request = rf.get('/index', data=query_params)
@@ -184,7 +183,7 @@ class TestHandleMissingToken(TestCase):
         # run tests
         response = handle_missing_token(request)
 
-        # check the response 
+        # check the response
         self.assertEqual(302, response.status_code)
         self.assertEqual(login_url, response['Location'])
 
@@ -203,10 +202,10 @@ class TestGetOauthToken(TestCase):
 
         stub_canvas_oauth2_token = StubCanvasOAuth2Token(access_token, refresh_token, expires)
         stub_canvas_oauth2_token.stub_expires_within_return_value(expired)
-        
+
         mock_user = MagicMock()
         type(mock_user).canvas_oauth2_token = PropertyMock(return_value=stub_canvas_oauth2_token)
-        
+
         request = RequestFactory().get('/index')
         request.user = mock_user
 
@@ -227,7 +226,8 @@ class TestGetOauthToken(TestCase):
         mock_refresh_oauth_token.assert_called_with(request)
 
         stub_canvas_oauth2_token = request.user.canvas_oauth2_token
-        self.assertTrue(stub_canvas_oauth2_token.stub_expires_within_called_with(settings.CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER))
+        expires_buffer = settings.CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER
+        self.assertTrue(stub_canvas_oauth2_token.stub_expires_within_called_with(expires_buffer))
 
     def test_missing_token_error(self):
         mock_user = MagicMock()
