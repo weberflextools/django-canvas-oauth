@@ -22,7 +22,7 @@ class TestGetOauthLoginUrl(TestCase):
         }
         auth_params_sorted = sorted(auth_params.items(), key=lambda val: val[0])
 
-        expected_url = f'https://{canvas_domain}/login/oauth2/auth?' + urlencode(auth_params_sorted)
+        expected_url = 'https://%s/login/oauth2/auth?%s' % (canvas_domain, urlencode(auth_params_sorted))
         actual_url = get_oauth_login_url(
             client_id=auth_params['client_id'],
             redirect_uri=auth_params['redirect_uri'],
@@ -47,9 +47,7 @@ class TestGetAccessToken(TestCase):
         return response_data
 
     def get_token_url(self):
-        canvas_domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
-        url = f'https://{canvas_domain}/login/oauth2/token'
-        return url
+        return 'https://%s/login/oauth2/token' % settings.CANVAS_OAUTH_CANVAS_DOMAIN
 
     @patch('canvas_oauth.canvas.timezone.now')
     @patch('canvas_oauth.canvas.requests.post')

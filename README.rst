@@ -16,6 +16,8 @@ Tokens are short-lived, so some logic is introduced at the point of retrieving t
 Installation
 ------------
 
+Requires python >= 3.6 and Django >= 2.0
+
 .. code-block:: bash
 
     pip install git+https://github.com/Harvard-University-iCommons/django-canvas-oauth.git#egg=canvas-oauth
@@ -44,7 +46,7 @@ Quickstart
 
 .. code-block:: python
     
-    MIDDLEWARE_CLASSES = [
+    MIDDLEWARE = [
         # ...
         'canvas_oauth.middleware.OAuthMiddleware',
     ]
