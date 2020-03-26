@@ -2,7 +2,7 @@
 """
 canvas_oauth specific settings
 """
-from __future__ import unicode_literals
+
 from datetime import timedelta
 
 from django.core.exceptions import ImproperlyConfigured
@@ -18,6 +18,7 @@ def get_required_setting(oauth_setting):
         raise ImproperlyConfigured(
             'Missing %s setting that is required to use the Django Canvas OAuth library' % oauth_setting)
     return getattr(settings, oauth_setting)
+
 
 # Get required settings from project conf
 CANVAS_OAUTH_CLIENT_ID = get_required_setting('CANVAS_OAUTH_CLIENT_ID')

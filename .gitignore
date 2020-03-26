@@ -3,3 +3,8 @@
 *.log
 *.pyc
 *.egg-info
+*.sqlite3
+.tox
+.coverage
+.vscode
+

@@ -29,6 +29,8 @@ def get_oauth_login_url(client_id, redirect_uri, response_type='code',
         'purpose': purpose,
         'force_login': force_login,
     }
+    auth_request_params = sorted(auth_request_params.items(), key=lambda val: val[0])
+
     # Use requests library to help build our url
     auth_request = requests.Request('GET', authorize_url,
                                     params=auth_request_params)
