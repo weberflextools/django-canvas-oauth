@@ -67,7 +67,8 @@ class TestRefreshOauthToken(TestCase):
         stub_canvas_oauth2_token = StubCanvasOAuth2Token(old_access_token, refresh_token, old_expires)
         mock_user = MagicMock()
 
-        # Because of the way mock attributes are stored you can’t directly attach a PropertyMock to a mock object. Instead you can attach it to the mock type object
+        # Because of the way mock attributes are stored you can’t directly attach a PropertyMock to a mock object.
+        # Instead you can attach it to the mock type object
         type(mock_user).canvas_oauth2_token = PropertyMock(return_value=stub_canvas_oauth2_token)
 
         # initialize request object
@@ -206,7 +207,8 @@ class TestGetOauthToken(TestCase):
         stub_canvas_oauth2_token.stub_expires_within_return_value(expired)
 
         mock_user = MagicMock()
-        # Because of the way mock attributes are stored you can’t directly attach a PropertyMock to a mock object. Instead you can attach it to the mock type object
+        # Because of the way mock attributes are stored you can’t directly attach a PropertyMock to a mock object.
+        # Instead you can attach it to the mock type object
         type(mock_user).canvas_oauth2_token = PropertyMock(return_value=stub_canvas_oauth2_token)
 
         request = RequestFactory().get('/index')
@@ -235,7 +237,8 @@ class TestGetOauthToken(TestCase):
     def test_missing_token_error(self):
         mock_user = MagicMock()
 
-        # Because of the way mock attributes are stored you can’t directly attach a PropertyMock to a mock object. Instead you can attach it to the mock type object
+        # Because of the way mock attributes are stored you can’t directly attach a PropertyMock to a mock object.
+        # Instead you can attach it to the mock type object
         type(mock_user).canvas_oauth2_token = PropertyMock(side_effect=CanvasOAuth2Token.DoesNotExist())
 
         request = RequestFactory().get('/index')

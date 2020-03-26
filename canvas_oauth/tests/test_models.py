@@ -16,11 +16,11 @@ def randomstr(size):
 class TestCanvasOAuth2Token(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username='jsmith', 
-            email='jsmith@localhost.localdomain', 
+            username='jsmith',
+            email='jsmith@localhost.localdomain',
             password='supersecret',
         )
-    
+
     def tearDown(self):
         self.user.delete()
 
@@ -73,6 +73,3 @@ class TestCanvasOAuth2Token(TestCase):
         delta = datetime.timedelta(0)
         requires_refresh = oauth2token.expires_within(delta)
         self.assertFalse(requires_refresh)
-
-
-        
