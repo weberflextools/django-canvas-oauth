@@ -81,10 +81,10 @@ CANVAS_OAUTH_CANVAS_DOMAIN:
     (required) The domain of your canvas instance (e.g. canvas.instructure.com)
 
 CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER:
-    Specify an earlier token expiration as a ``datetime.timedelta``. Defaults to ``timedelta(0)``.
+    (optional) Specify a ``datetime.timedelta`` that will force a refresh of the access token before it expires according to the ``expires_in`` parameter included in the access token response. Defaults to ``timedelta(0)``.
 
 CANVAS_OAUTH_ERROR_TEMPLATE:
-    Specify a template for rendering errors that occur in the authorization flow. Defaults to ``oauth_error.html``.
+    (optional) Specify a template for rendering errors that occur in the authorization flow. Defaults to ``oauth_error.html``.
 
 
 
