@@ -80,6 +80,9 @@ CANVAS_OAUTH_CLIENT_SECRET:
 CANVAS_OAUTH_CANVAS_DOMAIN:
     (required) The domain of your canvas instance (e.g. canvas.instructure.com)
 
+CANVAS_OAUTH_SCOPES:
+    (optional) Specify a list of Canvas API scopes that the access token will provide access to. Canvas API scopes may be found beneath their corresponding endpoints in the "resources" documentation pages. If the developer key does not require scopes and no scopes are specified, the access token will have access to all scopes. Defaults to ``[]``.
+
 CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER:
     (optional) Specify a ``datetime.timedelta`` that will force a refresh of the access token before it expires according to the ``expires_in`` parameter included in the access token response. Defaults to ``timedelta(0)``.
 

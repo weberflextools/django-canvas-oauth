@@ -41,3 +41,17 @@ CANVAS_OAUTH_ERROR_TEMPLATE = getattr(
     'CANVAS_OAUTH_ERROR_TEMPLATE',
     'oauth_error.html'
 )
+
+# A list of Canvas API scopes that the access token will provide access to.
+#
+# This is only required if the Canvas API developer key requires scopes
+# (e.g. enforces scopes). Otherwise, the access token will have access to
+# all scopes.
+#
+# Note that Canvas API scopes may be found beneath their corresponding
+# endpoints in the "resources" documentation pages.
+CANVAS_OAUTH_SCOPES = getattr(
+    settings,
+    'CANVAS_OAUTH_SCOPES',
+    []
+)

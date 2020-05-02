@@ -181,7 +181,8 @@ class TestHandleMissingToken(TestCase):
         login_url = get_oauth_login_url(
             client_id=settings.CANVAS_OAUTH_CLIENT_ID,
             redirect_uri=redirect_uri,
-            state=request_state)
+            state=request_state,
+            scopes=settings.CANVAS_OAUTH_SCOPES)
 
         # run tests
         response = handle_missing_token(request)
