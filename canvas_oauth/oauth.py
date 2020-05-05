@@ -67,7 +67,8 @@ def handle_missing_token(request):
     authorize_url = canvas.get_oauth_login_url(
         settings.CANVAS_OAUTH_CLIENT_ID,
         redirect_uri=oauth_redirect_uri,
-        state=oauth_request_state)
+        state=oauth_request_state,
+        scopes=settings.CANVAS_OAUTH_SCOPES)
 
     logger.info("Redirecting user to %s" % authorize_url)
     return HttpResponseRedirect(authorize_url)

@@ -1,33 +1,64 @@
-
-from django.test import TestCase
-from django.conf import settings
-from django.utils import timezone
 from datetime import timedelta
+from operator import itemgetter
 from urllib.parse import urlencode
 from uuid import uuid4
 from unittest.mock import patch
+
+from django.conf import settings
+from django.test import TestCase
+from django.utils import timezone
 
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 from canvas_oauth.canvas import get_oauth_login_url, get_access_token
 
 
 class TestGetOauthLoginUrl(TestCase):
-    def test_oauth_login_url(self):
+
+    def _get_expected_url(self, auth_params):
         canvas_domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
+        auth_params = sorted(auth_params.items(), key=itemgetter(0))
+        auth_qs = urlencode(auth_params)
+        return 'https://%s/login/oauth2/auth?%s' % (canvas_domain, auth_qs)
+
+    def test_oauth_login_url_with_empty_scopes(self):
         auth_params = {
             'response_type': 'code',
             'client_id': settings.CANVAS_OAUTH_CLIENT_ID,
             'redirect_uri': '/oauth/oauth-callback',
             'state': uuid4(),  # random string
         }
-        auth_params_sorted = sorted(auth_params.items(), key=lambda val: val[0])
+        expected_url = self._get_expected_url(auth_params)
 
-        expected_url = 'https://%s/login/oauth2/auth?%s' % (canvas_domain, urlencode(auth_params_sorted))
+        for scopes in ([], '', None):
+            actual_url = get_oauth_login_url(
+                client_id=auth_params['client_id'],
+                redirect_uri=auth_params['redirect_uri'],
+                state=auth_params['state'],
+                scopes=scopes,
+            )
+            self.assertEqual(expected_url, actual_url)
+
+    def test_oauth_login_url_with_scopes(self):
+        scopes = [
+            'url:GET|/api/v1/courses',
+            'url:GET|/api/v1/courses/:id',
+            'url:GET|/api/v1/courses/:course_id/assignments'
+        ]
+        auth_params = {
+            'response_type': 'code',
+            'client_id': settings.CANVAS_OAUTH_CLIENT_ID,
+            'redirect_uri': '/oauth/oauth-callback',
+            'state': uuid4(),  # random string
+            'scope': " ".join(scopes),
+        }
+
+        expected_url = self._get_expected_url(auth_params)
         actual_url = get_oauth_login_url(
             client_id=auth_params['client_id'],
             redirect_uri=auth_params['redirect_uri'],
-            state=auth_params['state'])
-
+            state=auth_params['state'],
+            scopes=scopes,
+        )
         self.assertEqual(expected_url, actual_url)
 
 

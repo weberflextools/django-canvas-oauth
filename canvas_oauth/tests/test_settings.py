@@ -36,6 +36,7 @@ class TestCanvasOauthSettings(TestCase):
             self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_CANVAS_DOMAIN'))
             self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_TOKEN_EXPIRATION_BUFFER'))
             self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_ERROR_TEMPLATE'))
+            self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_SCOPES'))
 
     def test_optional_oauth_token_expiration_buffer_default_value(self):
         with required_oauth_settings():
@@ -50,3 +51,10 @@ class TestCanvasOauthSettings(TestCase):
             canvas_oauth_settings = importlib.reload(canvas_oauth_settings)
             self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_ERROR_TEMPLATE'))
             self.assertEqual('oauth_error.html', canvas_oauth_settings.CANVAS_OAUTH_ERROR_TEMPLATE)
+
+    def test_optional_oauth_scopes_default_value(self):
+        with required_oauth_settings():
+            canvas_oauth_settings = importlib.import_module(CANVAS_OAUTH_SETTINGS_MODULE_NAME)
+            canvas_oauth_settings = importlib.reload(canvas_oauth_settings)
+            self.assertTrue(hasattr(canvas_oauth_settings, 'CANVAS_OAUTH_SCOPES'))
+            self.assertEqual([], canvas_oauth_settings.CANVAS_OAUTH_SCOPES)

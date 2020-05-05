@@ -19,13 +19,14 @@ def get_oauth_login_url(client_id, redirect_uri, response_type='code',
     """Builds an OAuth request url for Canvas.
     """
     authorize_url = AUTHORIZE_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_DOMAIN
+    scopes = " ".join(scopes) if scopes else None  
 
     auth_request_params = {
         'client_id': client_id,
         'redirect_uri': redirect_uri,
         'response_type': response_type,
         'state': state,
-        'scopes': scopes,
+        'scope': scopes,
         'purpose': purpose,
         'force_login': force_login,
     }
