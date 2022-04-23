@@ -65,6 +65,7 @@ def handle_missing_token(request):
     request.session["canvas_oauth_redirect_uri"] = oauth_redirect_uri
 
     authorize_url = canvas.get_oauth_login_url(
+        request.session["canvas_oauth_domain"],
         settings.CANVAS_OAUTH_CLIENT_ID,
         redirect_uri=oauth_redirect_uri,
         state=oauth_request_state,
@@ -90,6 +91,7 @@ def oauth_callback(request):
 
     # Make the `authorization_code` grant type request to retrieve a
     access_token, expires, refresh_token = canvas.get_access_token(
+        domain=request.session["canvas_oauth_domain"],
         grant_type='authorization_code',
         client_id=settings.CANVAS_OAUTH_CLIENT_ID,
         client_secret=settings.CANVAS_OAUTH_CLIENT_SECRET,
@@ -119,6 +121,7 @@ def refresh_oauth_token(request):
     # Get the new access token and expiration date via
     # a refresh token grant
     oauth_token.access_token, oauth_token.expires, _ = canvas.get_access_token(
+        domain=request.session['canvas_oauth_domain'],
         grant_type='refresh_token',
         client_id=settings.CANVAS_OAUTH_CLIENT_ID,
         client_secret=settings.CANVAS_OAUTH_CLIENT_SECRET,
