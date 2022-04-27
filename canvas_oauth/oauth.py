@@ -44,8 +44,8 @@ def get_oauth_token(request):
         logger.info("Refreshing token for user %s" % request.user.pk)
         oauth_token = refresh_oauth_token(request)
 
-    if 'oauth_token_key' in request.session:
-        fernet = Fernet(request.session['oauth_token_key'])
+    if 'canvas_oauth_token_key' in request.session:
+        fernet = Fernet(request.session['canvas_oauth_token_key'])
         return fernet.decrypt(oauth_token.access_token.encode()).decode()
     else:
         return oauth_token.access_token
@@ -113,8 +113,8 @@ def oauth_callback(request):
         redirect_uri=request.session["canvas_oauth_redirect_uri"],
         code=code)
 
-    if 'oauth_token_key' in request.session:
-        fernet = Fernet(request.session['oauth_token_key'])
+    if 'canvas_oauth_token_key' in request.session:
+        fernet = Fernet(request.session['canvas_oauth_token_key'])
         obj = CanvasOAuth2Token.objects.create(
             user=request.user,
             access_token=fernet.encrypt(access_token.encode()).decode(),
@@ -141,8 +141,8 @@ def refresh_oauth_token(request):
     """
     oauth_token = request.user.canvas_oauth2_token
 
-    if 'oauth_token_key' in request.session:
-        fernet = Fernet(request.session['oauth_token_key'])
+    if 'canvas_oauth_token_key' in request.session:
+        fernet = Fernet(request.session['canvas_oauth_token_key'])
         refresh_bytes = oauth_token.refresh_token.encode()
         refresh_token = fernet.decrypt(refresh_bytes).decode()
     else:
@@ -165,7 +165,7 @@ def refresh_oauth_token(request):
         refresh_token=refresh_token)
 
     # Update the model with new token and expiration
-    if 'oauth_token_key' in request.session:
+    if 'canvas_oauth_token_key' in request.session:
         access_token = fernet.encrypt(access_token.encode()).decode()
     oauth_token.access_token = access_token
     oauth_token.save()
