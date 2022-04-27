@@ -13,12 +13,15 @@ AUTHORIZE_URL_PATTERN = "https://%s/login/oauth2/auth"
 ACCESS_TOKEN_URL_PATTERN = "https://%s/login/oauth2/token"
 
 
-def get_oauth_login_url(domain, client_id, redirect_uri, response_type='code',
+def get_oauth_login_url(client_id, redirect_uri, response_type='code',
                         state=None, scopes=None, purpose=None,
-                        force_login=None):
+                        force_login=None, domain=None):
     """Builds an OAuth request url for Canvas.
     """
-    authorize_url = AUTHORIZE_URL_PATTERN % domain
+    if domain:
+        authorize_url = AUTHORIZE_URL_PATTERN % domain
+    else:
+        authorize_url = AUTHORIZE_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_DOMAIN
     scopes = " ".join(scopes) if scopes else None
 
     auth_request_params = {
@@ -40,8 +43,8 @@ def get_oauth_login_url(domain, client_id, redirect_uri, response_type='code',
     return auth_request.prepare().url
 
 
-def get_access_token(domain, grant_type, client_id, client_secret, redirect_uri,
-                     code=None, refresh_token=None):
+def get_access_token(grant_type, client_id, client_secret, redirect_uri,
+                     code=None, refresh_token=None, domain=None):
     """Performs one of the two grant types supported by Canvas' OAuth endpoint to
     to retrieve an access token.  Expect a `code` kwarg when performing an
     `authorization_code` grant; otherwise, assume we're doing a `refresh_token`
@@ -51,7 +54,10 @@ def get_access_token(domain, grant_type, client_id, client_secret, redirect_uri,
     and refresh token (returned by `authorization_code` requests only).
     """
     # Call Canvas endpoint to
-    oauth_token_url = ACCESS_TOKEN_URL_PATTERN % domain
+    if domain:
+        oauth_token_url = ACCESS_TOKEN_URL_PATTERN % domain
+    else:
+        oauth_token_url = ACCESS_TOKEN_URL_PATTERN % settings.CANVAS_OAUTH_CANVAS_DOMAIN
     post_params = {
         'grant_type': grant_type,  # Use 'authorization_code' for new tokens
         'client_id': client_id,

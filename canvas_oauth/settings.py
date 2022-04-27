@@ -26,6 +26,11 @@ CANVAS_OAUTH_CLIENT_SECRET = get_required_setting('CANVAS_OAUTH_CLIENT_SECRET')
 
 # Optional settings
 # -----------------
+CANVAS_OAUTH_CANVAS_DOMAIN = getattr(
+    settings,
+    'CANVAS_OAUTH_CANVAS_DOMAIN',
+    ''
+)
 
 # A buffer for refreshing a token when retrieving via `get_token`, expressed
 # as a timedelta.  Default to having no expiration buffer.

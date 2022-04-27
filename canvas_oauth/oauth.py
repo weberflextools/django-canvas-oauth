@@ -64,9 +64,13 @@ def handle_missing_token(request):
     oauth_redirect_uri = request.build_absolute_uri(reverse('canvas-oauth-callback'))
     request.session["canvas_oauth_redirect_uri"] = oauth_redirect_uri
 
+    if 'canvas_oauth_canvas_domain' in request.session:
+        domain = request.session["canvas_oauth_canvas_domain"]
+    else:
+        domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
     authorize_url = canvas.get_oauth_login_url(
-        request.session["canvas_oauth_domain"],
         settings.CANVAS_OAUTH_CLIENT_ID,
+        domain=domain,
         redirect_uri=oauth_redirect_uri,
         state=oauth_request_state,
         scopes=settings.CANVAS_OAUTH_SCOPES)
@@ -89,9 +93,14 @@ def oauth_callback(request):
         logger.warning("OAuth state mismatch for request: %s" % request.get_full_path())
         raise InvalidOAuthStateError("OAuth state mismatch!")
 
+    if 'canvas_oauth_canvas_domain' in request.session:
+        domain = request.session["canvas_oauth_canvas_domain"]
+    else:
+        domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
+
     # Make the `authorization_code` grant type request to retrieve a
     access_token, expires, refresh_token = canvas.get_access_token(
-        domain=request.session["canvas_oauth_domain"],
+        domain=domain,
         grant_type='authorization_code',
         client_id=settings.CANVAS_OAUTH_CLIENT_ID,
         client_secret=settings.CANVAS_OAUTH_CLIENT_SECRET,
@@ -118,10 +127,15 @@ def refresh_oauth_token(request):
     """
     oauth_token = request.user.canvas_oauth2_token
 
+    if 'canvas_oauth_canvas_domain' in request.session:
+        domain = request.session["canvas_oauth_canvas_domain"]
+    else:
+        domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
+
     # Get the new access token and expiration date via
     # a refresh token grant
     oauth_token.access_token, oauth_token.expires, _ = canvas.get_access_token(
-        domain=request.session['canvas_oauth_domain'],
+        domain=domain,
         grant_type='refresh_token',
         client_id=settings.CANVAS_OAUTH_CLIENT_ID,
         client_secret=settings.CANVAS_OAUTH_CLIENT_SECRET,
