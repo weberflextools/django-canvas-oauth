@@ -70,7 +70,9 @@ def handle_missing_token(request):
     oauth_redirect_uri = request.build_absolute_uri(reverse('canvas-oauth-callback'))
     request.session["canvas_oauth_redirect_uri"] = oauth_redirect_uri
 
-    if 'canvas_oauth_canvas_domain' in request.session:
+    if hasattr(request, 'canvas_oauth_canvas_domain'):
+        domain = request.canvas_oauth_canvas_domain
+    elif 'canvas_oauth_canvas_domain' in request.session:
         domain = request.session["canvas_oauth_canvas_domain"]
     else:
         domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
@@ -81,7 +83,7 @@ def handle_missing_token(request):
         state=oauth_request_state,
         scopes=settings.CANVAS_OAUTH_SCOPES)
 
-    logger.info("Redirecting user to %s" % authorize_url)
+    logger.info("Redirecting user to %s", authorize_url)
     return HttpResponseRedirect(authorize_url)
 
 
@@ -99,7 +101,9 @@ def oauth_callback(request):
         logger.warning("OAuth state mismatch for request: %s" % request.get_full_path())
         raise InvalidOAuthStateError("OAuth state mismatch!")
 
-    if 'canvas_oauth_canvas_domain' in request.session:
+    if hasattr(request, 'canvas_oauth_canvas_domain'):
+        domain = request.canvas_oauth_canvas_domain
+    elif 'canvas_oauth_canvas_domain' in request.session:
         domain = request.session["canvas_oauth_canvas_domain"]
     else:
         domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
@@ -148,7 +152,10 @@ def refresh_oauth_token(request):
     else:
         refresh_token = oauth_token.refresh_token
 
-    if 'canvas_oauth_canvas_domain' in request.session:
+
+    if hasattr(request, 'canvas_oauth_canvas_domain'):
+        domain = request.canvas_oauth_canvas_domain
+    elif 'canvas_oauth_canvas_domain' in request.session:
         domain = request.session["canvas_oauth_canvas_domain"]
     else:
         domain = settings.CANVAS_OAUTH_CANVAS_DOMAIN
