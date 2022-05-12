@@ -12,3 +12,7 @@ class InvalidOAuthStateError(CanvasOAuthError):
 
 class InvalidOAuthReturnError(CanvasOAuthError):
     pass
+
+
+class InvalidOAuthTimeoutError(CanvasOAuthError):
+    pass

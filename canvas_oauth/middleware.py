@@ -1,4 +1,4 @@
-from canvas_oauth.exceptions import (MissingTokenError, CanvasOAuthError)
+from canvas_oauth.exceptions import (MissingTokenError, InvalidOAuthTimeoutError, CanvasOAuthError)
 from canvas_oauth.oauth import (handle_missing_token, render_oauth_error)
 
 
@@ -16,6 +16,9 @@ class OAuthMiddleware(object):
     the exception text is rendered."""
     def process_exception(self, request, exception):
         if isinstance(exception, MissingTokenError):
+            return handle_missing_token(request)
+        if isinstance(exception, InvalidOAuthTimeoutError):
+            request.user.canvas_oauth2_token.delete()
             return handle_missing_token(request)
         elif isinstance(exception, CanvasOAuthError):
             return render_oauth_error(str(exception))

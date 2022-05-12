@@ -4,7 +4,7 @@ from datetime import timedelta
 import requests
 from django.utils import timezone
 
-from canvas_oauth.exceptions import InvalidOAuthReturnError
+from canvas_oauth.exceptions import InvalidOAuthReturnError, InvalidOAuthTimeoutError
 from canvas_oauth import settings
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,11 @@ def get_access_token(grant_type, client_id, client_secret, redirect_uri,
     else:
         post_params['refresh_token'] = refresh_token
 
-    r = requests.post(oauth_token_url, post_params)
+    try:
+        r = requests.post(oauth_token_url, post_params, timeout=5)
+    except requests.Timeout:
+        raise InvalidOAuthTimeoutError("%s request failed to get a token:" % (
+            grant_type))
     logger.info("%s POST response from Canvas is %s", grant_type, r.text)
     if r.status_code != 200:
         raise InvalidOAuthReturnError("%s request failed to get a token: %s" % (
