@@ -76,7 +76,6 @@ def get_access_token(grant_type, client_id, client_secret, redirect_uri,
     except requests.Timeout:
         raise InvalidOAuthTimeoutError("%s request failed to get a token:" % (
             grant_type))
-    logger.info("%s POST response from Canvas is %s", grant_type, r.text)
     if r.status_code != 200:
         raise InvalidOAuthReturnError("%s request failed to get a token: %s" % (
             grant_type, r.text))
